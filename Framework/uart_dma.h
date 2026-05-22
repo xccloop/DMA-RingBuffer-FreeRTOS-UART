@@ -20,5 +20,6 @@ uint32_t  uart_dma_tx_free(uart_dma_handle_t *h);
 bool      uart_dma_tx_flush(uart_dma_handle_t *h, uint32_t timeout);
 void      uart_dma_rx_flush(uart_dma_handle_t *h);
 bool      uart_dma_tx_busy(uart_dma_handle_t *h);
+void      uart_dma_set_rx_task(uart_dma_handle_t *h, void *task);
 
 #endif

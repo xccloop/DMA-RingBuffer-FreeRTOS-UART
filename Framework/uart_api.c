@@ -81,7 +81,7 @@ int32_t uart_recv(uint8_t port, uint8_t *buf, uint32_t len, uint32_t timeout)
 {
     ctx_t *c = &g_ctx[port];
     if (!c->init || !buf || len == 0) return -1;
-    c->drv->rx_task = xTaskGetCurrentTaskHandle();
+    uart_dma_set_rx_task(c->drv, xTaskGetCurrentTaskHandle());
 
     TickType_t st = xTaskGetTickCount();
     while (1) {
@@ -163,7 +163,7 @@ void uart_yield(uint8_t port, uint32_t timeout)
 {
     ctx_t *c = &g_ctx[port];
     if (!c->init) return;
-    c->drv->rx_task = xTaskGetCurrentTaskHandle();
+    uart_dma_set_rx_task(c->drv, xTaskGetCurrentTaskHandle());
     TickType_t st = xTaskGetTickCount();
     while (1) {
         uint32_t a = uart_dma_rx_available(c->drv);

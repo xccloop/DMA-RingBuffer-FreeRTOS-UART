@@ -117,6 +117,7 @@ bool uart_dma_tx_flush(uart_dma_handle_t *h, uint32_t to)
 }
 
 bool uart_dma_tx_busy(uart_dma_handle_t *h) { return h && !h->idle; }
+void uart_dma_set_rx_task(uart_dma_handle_t *h, void *task) { if (h) h->rx_task = (TaskHandle_t)task; }
 
 /* ── ISR: TX TC ── */
 static void on_tx_tc(uint8_t p)

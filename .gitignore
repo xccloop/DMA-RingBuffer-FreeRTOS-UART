@@ -30,3 +30,5 @@ JLinkSettings.ini
 # Misc
 *.bak
 *.tmp
+
+*.d

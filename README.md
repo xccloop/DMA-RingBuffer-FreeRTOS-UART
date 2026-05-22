@@ -37,6 +37,16 @@ Application → uart_api.h ─→ driver/uart_dma.h ─→ port/stm32f1xx/uart_p
 ├── test/
 │   ├── test_ringbuffer.c        # Ring buffer unit tests (host-compilable)
 │   └── test_uart_loopback.c     # Hardware loopback integration test
+├── platform/
+│   └── stm32f103zet6/           # Keil MDK + GCC 完整工程
+│       ├── main.c               # Demo application
+│       ├── stm32f1xx_it.c       # ISR → framework routing
+│       ├── startup_stm32f103xe.s # CMSIS startup
+│       ├── FreeRTOSConfig.h     # FreeRTOS kernel config
+│       ├── DMAFreeRTOS.uvprojx  # Keil project file
+│       ├── Makefile             # GCC ARM build
+│       ├── configure_paths.ps1  # Auto path configurator
+│       └── README.md            # Integration guide
 └── doc/                         # Detailed documentation (Chinese)
 ```
 
@@ -64,12 +74,21 @@ void my_task(void *param)
 }
 ```
 
+## Getting Started on Hardware
+
+See **[platform/stm32f103zet6/README.md](platform/stm32f103zet6/README.md)** for complete integration guide:
+
+1. **Auto-configure**: Run `.\platform\stm32f103zet6\configure_paths.ps1`
+2. **Keil MDK**: Open `DMAFreeRTOS.uvprojx` → Build (F7) → Download (F8)
+3. **GCC**: `cd platform\stm32f103zet6 && make`
+4. **CubeMX**: Generate base project, then merge framework files
+
 ## Requirements
 
 - STM32F103ZET6 (or compatible)
-- STM32 HAL Library
+- STM32CubeF1 HAL Library
 - FreeRTOS v10.x or later
-- GCC ARM Embedded toolchain
+- Keil MDK-ARM **or** ARM GCC toolchain
 
 ## Documentation
 

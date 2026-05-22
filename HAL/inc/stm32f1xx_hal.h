@@ -353,6 +353,29 @@ void HAL_DBGMCU_DisableDBGStandbyMode(void);
 }
 #endif
 
+/* Include module headers based on config */
+#ifdef HAL_GPIO_MODULE_ENABLED
+#include "stm32f1xx_hal_gpio.h"
+#endif
+#ifdef HAL_DMA_MODULE_ENABLED
+#include "stm32f1xx_hal_dma.h"
+#endif
+#ifdef HAL_UART_MODULE_ENABLED
+#include "stm32f1xx_hal_uart.h"
+#endif
+#ifdef HAL_RCC_MODULE_ENABLED
+#include "stm32f1xx_hal_rcc.h"
+#endif
+#ifdef HAL_CORTEX_MODULE_ENABLED
+#include "stm32f1xx_hal_cortex.h"
+#endif
+#ifdef HAL_FLASH_MODULE_ENABLED
+#include "stm32f1xx_hal_flash.h"
+#endif
+#ifdef HAL_PWR_MODULE_ENABLED
+#include "stm32f1xx_hal_pwr.h"
+#endif
+
 #endif /* __STM32F1xx_HAL_H */
 
 

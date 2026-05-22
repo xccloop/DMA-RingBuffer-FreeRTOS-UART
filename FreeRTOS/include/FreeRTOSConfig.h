@@ -38,6 +38,9 @@ extern uint32_t SystemCoreClock;
 #define configTIMER_QUEUE_LENGTH         10
 #define configTIMER_TASK_STACK_DEPTH     256
 
+#define INCLUDE_vTaskDelay               1
+#define INCLUDE_xTaskDelayUntil          1
+
 #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY          15
 #define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY     5
 #define configKERNEL_INTERRUPT_PRIORITY         (15 << (8 - 4))

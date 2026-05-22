@@ -59,13 +59,13 @@ static void echo_task(void *pv)
             else if (strncmp((char*)buf, "test", 4) == 0) {
                 char *s = "Loopback OK!\r\n";
                 uart_send(1, (uint8_t*)s, (uint32_t)strlen(s), pdMS_TO_TICKS(1000));
-                vTaskDelay(pdMS_TO_TICKS(100));
+                xTaskDelay(pdMS_TO_TICKS(100));
                 uint8_t rx[64]; int32_t m = uart_recv(1, rx, sizeof(rx), pdMS_TO_TICKS(200));
                 uart_printf(0, "[Test] %s (%ld bytes)\r\n", (m > 0) ? "PASS" : "FAIL (check PA2-PA3 jumper)", m);
             }
             else { uart_printf(0, "echo: "); uart_send(0, buf, (uint32_t)n, pdMS_TO_TICKS(100)); }
             uart_printf(0, "\r\n> ");
-        } else vTaskDelay(pdMS_TO_TICKS(10));
+        } else xTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -75,7 +75,7 @@ static void heartbeat_task(void *pv)
     RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
     GPIOC->CRH = (GPIOC->CRH & ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13)) | GPIO_CRH_MODE13_1;
     TickType_t t = xTaskGetTickCount();
-    while (1) { GPIOC->ODR ^= GPIO_ODR_ODR13; vTaskDelayUntil(&t, pdMS_TO_TICKS(500)); }
+    while (1) { GPIOC->ODR ^= GPIO_ODR_ODR13; xTaskDelayUntil(&t, pdMS_TO_TICKS(500)); }
 }
 
 /* ── main ── */

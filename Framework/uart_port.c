@@ -27,31 +27,36 @@ typedef struct {
 
 static port_t g_port[UART_PORT_MAX];
 
-/* ── HAL MSP per-port GPIO/Clock init ── */
+/* ── Per-port GPIO/Clock init (direct register, no HAL GPIO) ── */
 static void msp_init(uint8_t p)
 {
-    GPIO_InitTypeDef g = {0};
     switch (p) {
     case UART_PORT1:
-        __HAL_RCC_USART1_CLK_ENABLE(); __HAL_RCC_GPIOA_CLK_ENABLE();
-        g.Pin = GPIO_PIN_9;  g.Mode = GPIO_MODE_AF_PP;      g.Speed = GPIO_SPEED_FREQ_HIGH;
-        HAL_GPIO_Init(GPIOA, &g);
-        g.Pin = GPIO_PIN_10; g.Mode = GPIO_MODE_INPUT;       g.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOA, &g);
+        RCC->APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_IOPAEN;
+        /* PA9 = USART1_TX: alternate push-pull, 50MHz */
+        GPIOA->CRH = (GPIOA->CRH & ~(GPIO_CRH_CNF9 | GPIO_CRH_MODE9))
+                   | GPIO_CRH_CNF9_1 | GPIO_CRH_MODE9_0 | GPIO_CRH_MODE9_1;
+        /* PA10 = USART1_RX: input floating */
+        GPIOA->CRH = (GPIOA->CRH & ~(GPIO_CRH_CNF10 | GPIO_CRH_MODE10))
+                   | GPIO_CRH_CNF10_0;
         break;
     case UART_PORT2:
-        __HAL_RCC_USART2_CLK_ENABLE(); __HAL_RCC_GPIOA_CLK_ENABLE();
-        g.Pin = GPIO_PIN_2;   g.Mode = GPIO_MODE_AF_PP;      g.Speed = GPIO_SPEED_FREQ_HIGH;
-        HAL_GPIO_Init(GPIOA, &g);
-        g.Pin = GPIO_PIN_3;   g.Mode = GPIO_MODE_INPUT;       g.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOA, &g);
+        RCC->APB1ENR |= RCC_APB1ENR_USART2EN; RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+        /* PA2 = USART2_TX */
+        GPIOA->CRL = (GPIOA->CRL & ~(GPIO_CRL_CNF2 | GPIO_CRL_MODE2))
+                   | GPIO_CRL_CNF2_1 | GPIO_CRL_MODE2_0 | GPIO_CRL_MODE2_1;
+        /* PA3 = USART2_RX */
+        GPIOA->CRL = (GPIOA->CRL & ~(GPIO_CRL_CNF3 | GPIO_CRL_MODE3))
+                   | GPIO_CRL_CNF3_0;
         break;
     case UART_PORT3:
-        __HAL_RCC_USART3_CLK_ENABLE(); __HAL_RCC_GPIOB_CLK_ENABLE();
-        g.Pin = GPIO_PIN_10;  g.Mode = GPIO_MODE_AF_PP;      g.Speed = GPIO_SPEED_FREQ_HIGH;
-        HAL_GPIO_Init(GPIOB, &g);
-        g.Pin = GPIO_PIN_11;  g.Mode = GPIO_MODE_INPUT;       g.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOB, &g);
+        RCC->APB1ENR |= RCC_APB1ENR_USART3EN; RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
+        /* PB10 = USART3_TX */
+        GPIOB->CRH = (GPIOB->CRH & ~(GPIO_CRH_CNF10 | GPIO_CRH_MODE10))
+                   | GPIO_CRH_CNF10_1 | GPIO_CRH_MODE10_0 | GPIO_CRH_MODE10_1;
+        /* PB11 = USART3_RX */
+        GPIOB->CRH = (GPIOB->CRH & ~(GPIO_CRH_CNF11 | GPIO_CRH_MODE11))
+                   | GPIO_CRH_CNF11_0;
         break;
     }
 }

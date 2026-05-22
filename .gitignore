@@ -1,34 +1,68 @@
-# Build output
-build/
-cmake-build-*/
+# ============================================
+# STM32 / Keil MDK-ARM Project .gitignore
+# ============================================
+
+# --- Keil user-specific settings ---
+*.uvoptx
+*.uvguix.*
+*.uvguix
+
+# --- Build output directory ---
+Output/
+*.build_log.htm
+
+# --- Compiled objects ---
 *.o
-*.elf
+*.d
+
+# --- Linker & executable artifacts ---
+*.axf
 *.hex
 *.bin
 *.map
+*.lnp
+*.dep
+*.crf
+*.htm
 
-# IDE
-.idea/
-.vscode/
+# --- Listing files ---
+*.lst
+
+# --- Scatter / linker scripts ---
+*.scr
+*.sct
+*.iex
+
+# --- Preprocessor intermediates ---
+*._i
+*.__i
+
+# --- Debugger settings ---
+JLinkLog.txt
+JLinkSettings.ini
+*.DebugConfig
+*.ReleaseConfig
+
+# --- RTE generated ---
+RTE/
+
+# --- OS generated files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Editor / IDE ---
 *.swp
 *.swo
 *~
+.vscode/
+.idea/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Keil generated files
-*.uvguix.*
-*.dep
-*.build_log.htm
-*.lst
-*.scratch
-JLinkLog.txt
-JLinkSettings.ini
-
-# Misc
-*.bak
-*.tmp
-
-*.d
+# --- Python __pycache__ (if any script tools) ---
+__pycache__/
+*.pyc

@@ -30,9 +30,13 @@ static port_t g_port[UART_PORT_MAX];
 /* ── Per-port GPIO/Clock init (direct register, no HAL GPIO) ── */
 static void msp_init(uint8_t p)
 {
+    volatile uint32_t tmp;
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    tmp = RCC->AHBENR; (void)tmp;
     switch (p) {
     case UART_PORT1:
         RCC->APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_IOPAEN;
+        tmp = RCC->APB2ENR; (void)tmp;
         /* PA9 = USART1_TX: alternate push-pull, 50MHz */
         GPIOA->CRH = (GPIOA->CRH & ~(GPIO_CRH_CNF9 | GPIO_CRH_MODE9))
                    | GPIO_CRH_CNF9_1 | GPIO_CRH_MODE9_0 | GPIO_CRH_MODE9_1;
@@ -42,6 +46,7 @@ static void msp_init(uint8_t p)
         break;
     case UART_PORT2:
         RCC->APB1ENR |= RCC_APB1ENR_USART2EN; RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+        tmp = RCC->APB2ENR; (void)tmp;
         /* PA2 = USART2_TX */
         GPIOA->CRL = (GPIOA->CRL & ~(GPIO_CRL_CNF2 | GPIO_CRL_MODE2))
                    | GPIO_CRL_CNF2_1 | GPIO_CRL_MODE2_0 | GPIO_CRL_MODE2_1;
@@ -51,6 +56,7 @@ static void msp_init(uint8_t p)
         break;
     case UART_PORT3:
         RCC->APB1ENR |= RCC_APB1ENR_USART3EN; RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
+        tmp = RCC->APB2ENR; (void)tmp;
         /* PB10 = USART3_TX */
         GPIOB->CRH = (GPIOB->CRH & ~(GPIO_CRH_CNF10 | GPIO_CRH_MODE10))
                    | GPIO_CRH_CNF10_1 | GPIO_CRH_MODE10_0 | GPIO_CRH_MODE10_1;
@@ -102,10 +108,10 @@ void uart_port_init(uint8_t p, uint32_t baud)
     q->dma_rx_ch->CCR = 0;
     q->dma_rx_ch->CCR = DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_PL_1 | DMA_CCR_TCIE | DMA_CCR_HTIE;
 
-    /* NVIC */
-    HAL_NVIC_SetPriority(q->usart_irq,   6, 0);
-    HAL_NVIC_SetPriority(q->dma_tx_irq,  7, 0);
-    HAL_NVIC_SetPriority(q->dma_rx_irq,  7, 0);
+    /* NVIC — prio 4 avoids FreeRTOS BASEPRI masking (configMAX_SYSCALL=5) */
+    HAL_NVIC_SetPriority(q->usart_irq,   4, 0);
+    HAL_NVIC_SetPriority(q->dma_tx_irq,  4, 0);
+    HAL_NVIC_SetPriority(q->dma_rx_irq,  4, 0);
     HAL_NVIC_EnableIRQ(q->usart_irq);
 
     q->usart->CR1 |= USART_CR1_UE;  /* Enable UART */

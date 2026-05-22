@@ -15,6 +15,7 @@ struct uart_dma_handle {
     volatile uint32_t kick_head;
     volatile bool     chain_pending;
     volatile bool     idle;
+    uint32_t      rx_prev_cndtr;   /* for delta-based rx_update */
 };
 
 static uart_dma_handle_t *g_handle[UART_PORT_MAX];
@@ -63,14 +64,15 @@ uart_dma_handle_t *uart_dma_open(uint8_t port, uint32_t baud,
     h->tx_task = h->rx_task = xTaskGetCurrentTaskHandle();
     h->kick_head = 0; h->chain_pending = false; h->idle = true;
 
-    uart_port_set_tx_tc_cb(port, on_tx_tc);
+    uart_port_init(port, baud);               /* must come first: memset inside */
+    uart_port_set_tx_tc_cb(port, on_tx_tc);   /* callbacks AFTER init (memset clears) */
     uart_port_set_rx_ht_cb(port, on_rx_ht);
     uart_port_set_rx_tc_cb(port, on_rx_tc);
     uart_port_set_idle_cb(port, on_idle);
     uart_port_set_error_cb(port, on_error);
 
-    uart_port_init(port, baud);
     uart_port_dma_rx_start(port, rx_buf, rx_sz);
+    h->rx_prev_cndtr = rx_sz;   /* initial CNDTR = rx_buf size */
 
     g_handle[port] = h;
     return h;
@@ -147,13 +149,19 @@ static void on_tx_tc(uint8_t p)
 /* ── ISR: RX HT/TC ── */
 static void rx_update(uart_dma_handle_t *h)
 {
-    uint32_t recv = h->rx_rb.capacity - uart_port_rx_dma_remaining(h->port);
-    uint32_t old  = rb_get_head(&h->rx_rb);
-    uint32_t mod  = old % h->rx_rb.capacity;
-    uint32_t base = old - mod;
-    uint32_t nh   = (recv > mod) ? base + recv : base + h->rx_rb.capacity + recv;
-    if (nh > old + h->rx_rb.capacity) nh = old + h->rx_rb.capacity;
-    if (nh > old) rb_advance_head(&h->rx_rb, nh - old);
+    uint32_t curr = uart_port_rx_dma_remaining(h->port);
+    uint32_t prev = h->rx_prev_cndtr;
+    uint32_t delta;
+
+    if (curr <= prev) {
+        delta = prev - curr;
+    } else {
+        /* DMA CNDTR reloaded (circular wrap) */
+        delta = prev + (h->rx_rb.capacity - curr);
+    }
+    h->rx_prev_cndtr = curr;
+
+    if (delta > 0) rb_advance_head(&h->rx_rb, delta);
 }
 
 static void on_rx_ht(uint8_t p) { rx_update(g_handle[p]); }

@@ -45,7 +45,7 @@ extern uint32_t SystemCoreClock;
 
 #define vPortSVCHandler       SVC_Handler
 #define xPortPendSVHandler    PendSV_Handler
-#define xPortSysTickHandler   SysTick_Handler
+/* xPortSysTickHandler is called from SysTick_Handler in stm32f1xx_it.c (which also calls HAL_IncTick) */
 
 #define configASSERT(x)  if((x)==0) { taskDISABLE_INTERRUPTS(); for(;;); }
 

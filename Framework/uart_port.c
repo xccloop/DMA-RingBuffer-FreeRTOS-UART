@@ -8,6 +8,7 @@
  */
 #include "uart_port.h"
 #include "stm32f1xx_hal.h"
+#include <string.h>
 
 typedef struct {
     USART_TypeDef       *usart;

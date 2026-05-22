@@ -1,12 +1,8 @@
 #******************************************************************************
-# @file     Makefile
-# @brief    GCC ARM Embedded build for STM32F103ZET6 DMA-UART Framework
+# @file     Makefile (self-contained)
+# @brief    GCC ARM Embedded build — NO external paths needed
 #
-# Usage:
-#   1. Install ARM GCC: https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain
-#   2. Set paths below to your STM32CubeF1 and FreeRTOS directories
-#   3. make clean && make
-#   4. Flash with: make flash (uses ST-Link via openocd or st-flash)
+# All third-party sources are bundled in ./ThirdParty/
 #******************************************************************************
 
 PROJECT = DMAFreeRTOS
@@ -16,97 +12,76 @@ CROSS   = arm-none-eabi-
 CC      = $(CROSS)gcc
 AS      = $(CROSS)gcc -x assembler-with-cpp
 OBJCOPY = $(CROSS)objcopy
-OBJDUMP = $(CROSS)objdump
 SIZE    = $(CROSS)size
 
-# ---- STM32CubeF1 path (ADJUST THIS) ----
-STM32CUBE = C:/Users/$(USERNAME)/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.5
-# If you don't have Cube, download from:
-# https://github.com/STMicroelectronics/STM32CubeF1
-
-# ---- FreeRTOS path (ADJUST THIS) ----
-FREERTOS = C:/FreeRTOS/FreeRTOSv202212.01/FreeRTOS
-# Download from: https://github.com/FreeRTOS/FreeRTOS
-
 # ---- Project root ----
-PROJROOT = ../..
+ROOT = ../..
 
 # ---- MCU flags ----
-CPU       = -mcpu=cortex-m3
-FPU       =
-FLOAT_ABI =
-MCU       = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
+CPU       = -mcpu=cortex-m3 -mthumb
+DEFS      = -DSTM32F103xE -DUSE_HAL_DRIVER
 
-# ---- Defines ----
-DEFS  = -DSTM32F103xE
-DEFS += -DUSE_HAL_DRIVER
-
-# ---- Includes ----
-INC   = -I$(PROJROOT)
-INC  += -I$(PROJROOT)/config
-INC  += -I$(PROJROOT)/ringbuffer
-INC  += -I$(PROJROOT)/driver
-INC  += -I$(PROJROOT)/api
-INC  += -I$(PROJROOT)/port
-INC  += -I.
-
-# STM32CubeF1 HAL/CMSIS includes
-INC  += -I$(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Inc
-INC  += -I$(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
-INC  += -I$(STM32CUBE)/Drivers/CMSIS/Device/ST/STM32F1xx/Include
-INC  += -I$(STM32CUBE)/Drivers/CMSIS/Include
-
-# FreeRTOS includes
-INC  += -I$(FREERTOS)/Source/include
-INC  += -I$(FREERTOS)/Source/portable/GCC/ARM_CM3
+# ---- All include paths (all local!) ----
+INC  = -I$(ROOT)
+INC += -I$(ROOT)/config
+INC += -I$(ROOT)/ringbuffer
+INC += -I$(ROOT)/driver
+INC += -I$(ROOT)/api
+INC += -I$(ROOT)/port
+INC += -I.                           # FreeRTOSConfig.h, stm32f1xx_hal_conf.h
+INC += -IThirdParty/FreeRTOS/include
+INC += -IThirdParty/FreeRTOS/portable/RVDS/ARM_CM3
+INC += -IThirdParty/HAL/Inc
+INC += -IThirdParty/HAL/Inc/Legacy
+INC += -IThirdParty/CMSIS/Device
+INC += -IThirdParty/CMSIS/Include
 
 # ---- Flags ----
-CFLAGS  = $(MCU) $(DEFS) $(INC)
+CFLAGS  = $(CPU) $(DEFS) $(INC)
 CFLAGS += -Wall -Wextra -O2 -g
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -fno-common -fmessage-length=0
-CFLAGS += -std=c11
+CFLAGS += -fno-common -std=c11
+CFLAGS += -Wno-unused-parameter
 
-ASFLAGS = $(MCU) $(DEFS) $(INC) -Wall -g
+ASFLAGS = $(CPU) $(DEFS) $(INC) -Wall -g
 
-LDFLAGS  = $(MCU) -T STM32F103XE_FLASH.ld
+LDFLAGS  = $(CPU) -T STM32F103XE_FLASH.ld
 LDFLAGS += -specs=nosys.specs -specs=nano.specs
 LDFLAGS += -Wl,--gc-sections -Wl,-Map=$(PROJECT).map,--cref
-LDFLAGS += -Wl,--print-memory-usage
 
-# ---- Sources ----
+# ---- Framework sources ----
+C_SRC  = $(ROOT)/ringbuffer/ringbuffer.c
+C_SRC += $(ROOT)/port/stm32f1xx/uart_port.c
+C_SRC += $(ROOT)/driver/uart_dma.c
+C_SRC += $(ROOT)/api/uart_api.c
 
-# Framework
-C_SRC  = $(PROJROOT)/ringbuffer/ringbuffer.c
-C_SRC += $(PROJROOT)/port/stm32f1xx/uart_port.c
-C_SRC += $(PROJROOT)/driver/uart_dma.c
-C_SRC += $(PROJROOT)/api/uart_api.c
-
-# Platform
+# ---- Platform sources ----
 C_SRC += main.c
 C_SRC += stm32f1xx_it.c
+
+# ---- HAL sources (bundled) ----
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_gpio.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_dma.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_uart.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_rcc.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_cortex.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_flash.c
+C_SRC += ThirdParty/HAL/Src/stm32f1xx_hal_pwr.c
+
+# ---- CMSIS sources (bundled) ----
+C_SRC += ThirdParty/CMSIS/Device/system_stm32f1xx.c
+
+# ---- FreeRTOS sources (bundled) ----
+C_SRC += ThirdParty/FreeRTOS/src/tasks.c
+C_SRC += ThirdParty/FreeRTOS/src/queue.c
+C_SRC += ThirdParty/FreeRTOS/src/list.c
+C_SRC += ThirdParty/FreeRTOS/src/timers.c
+C_SRC += ThirdParty/FreeRTOS/portable/RVDS/ARM_CM3/port.c
+C_SRC += ThirdParty/FreeRTOS/portable/MemMang/heap_4.c
+
+# ---- Assembly sources ----
 ASM_SRC = startup_stm32f103xe.s
-
-# HAL (minimal set)
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
-C_SRC += $(STM32CUBE)/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
-
-# CMSIS system
-C_SRC += $(STM32CUBE)/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates/system_stm32f1xx.c
-
-# FreeRTOS
-C_SRC += $(FREERTOS)/Source/tasks.c
-C_SRC += $(FREERTOS)/Source/queue.c
-C_SRC += $(FREERTOS)/Source/list.c
-C_SRC += $(FREERTOS)/Source/timers.c
-C_SRC += $(FREERTOS)/Source/portable/MemMang/heap_4.c
-C_SRC += $(FREERTOS)/Source/portable/GCC/ARM_CM3/port.c
 
 # ---- Objects ----
 OBJ = $(C_SRC:.c=.o) $(ASM_SRC:.s=.o)
@@ -120,6 +95,7 @@ $(PROJECT).elf: $(OBJ)
 	@$(SIZE) $@
 	@$(OBJCOPY) -O ihex   $@ $(PROJECT).hex
 	@$(OBJCOPY) -O binary $@ $(PROJECT).bin
+	@echo "  Done: $(PROJECT).elf $(PROJECT).hex $(PROJECT).bin"
 
 %.o: %.c
 	@echo "  CC    $<"

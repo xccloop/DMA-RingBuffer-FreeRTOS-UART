@@ -1,150 +1,79 @@
-#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Auto-configure STM32CubeF1 and FreeRTOS paths for the DMA-UART Framework.
+    Verify the self-contained DMA-UART project is ready for Keil MDK.
 
 .DESCRIPTION
-    Scans common installation locations for STM32CubeF1 and FreeRTOS,
-    then updates Makefile and Keil project paths accordingly.
+    This project is SELF-CONTAINED — all third-party source code
+    (FreeRTOS, STM32 HAL, CMSIS) is bundled in ./ThirdParty/
 
-    For Keil users: after running this script, the .uvprojx/.uvoptx files
-    will have correct paths. Open the project in Keil and it will find
-    all HAL and FreeRTOS source files.
+    This script just verifies the file structure and prints
+    instructions for Keil MDK setup.
 
-.PARAMETER CubePath
-    Optional: Manually specify STM32CubeF1 repository path
-
-.PARAMETER FreeRtosPath
-    Optional: Manually specify FreeRTOS source path
-
-.EXAMPLE
-    .\configure_paths.ps1
-
-.EXAMPLE
-    .\configure_paths.ps1 -CubePath "D:\STM32Cube_FW_F1_V1.8.5" -FreeRtosPath "D:\FreeRTOSv202212.01\FreeRTOS"
+.NOTES
+    No external downloads or path configuration needed.
 #>
 
-param(
-    [string]$CubePath = "",
-    [string]$FreeRtosPath = ""
-)
-
-$ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " DMA-UART Framework Path Configurator" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "╔══════════════════════════════════════════╗"
+Write-Host "║  DMA-UART Framework — Self-Contained    ║"
+Write-Host "║  STM32F103ZET6 Keil MDK Project         ║"
+Write-Host "╚══════════════════════════════════════════╝"
 Write-Host ""
 
-# ---- Find STM32CubeF1 ----
-if ($CubePath -eq "") {
-    $searchPaths = @(
-        "C:\Users\$env:USERNAME\STM32Cube\Repository\STM32Cube_FW_F1_V*",
-        "D:\STM32Cube\Repository\STM32Cube_FW_F1_V*",
-        "C:\STM32Cube_FW_F1_V*",
-        "D:\STM32Cube_FW_F1_V*",
-        "$ScriptDir\..\..\STM32Cube_FW_F1_V*"
-    )
+# ---- Verify ThirdParty files ----
+$tp = Join-Path $ScriptDir "ThirdParty"
+$checks = @(
+    @{Path="$tp\FreeRTOS\src\tasks.c"; Name="FreeRTOS tasks.c"},
+    @{Path="$tp\FreeRTOS\include\FreeRTOS.h"; Name="FreeRTOS.h"},
+    @{Path="$tp\FreeRTOS\portable\RVDS\ARM_CM3\port.c"; Name="FreeRTOS port.c (Keil)"},
+    @{Path="$tp\FreeRTOS\portable\MemMang\heap_4.c"; Name="FreeRTOS heap_4.c"},
+    @{Path="$tp\HAL\Src\stm32f1xx_hal.c"; Name="HAL core"},
+    @{Path="$tp\HAL\Src\stm32f1xx_hal_uart.c"; Name="HAL UART driver"},
+    @{Path="$tp\HAL\Src\stm32f1xx_hal_dma.c"; Name="HAL DMA driver"},
+    @{Path="$tp\HAL\Inc\stm32f1xx_hal.h"; Name="HAL main header"},
+    @{Path="$tp\CMSIS\Device\stm32f1xx.h"; Name="CMSIS device header"},
+    @{Path="$tp\CMSIS\Device\system_stm32f1xx.c"; Name="CMSIS system init"},
+    @{Path="$tp\CMSIS\Include\core_cm3.h"; Name="CMSIS Cortex-M3 core"},
+    @{Path="$tp\CMSIS\Include\cmsis_gcc.h"; Name="CMSIS compiler (GCC)"},
+    @{Path="$tp\CMSIS\Include\cmsis_armcc.h"; Name="CMSIS compiler (ARMCC/Keil)"}
+)
 
-    foreach ($pattern in $searchPaths) {
-        $found = Get-Item $pattern -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
-        if ($found) {
-            $CubePath = $found.FullName
-            break
-        }
-    }
-}
-
-if ($CubePath -and (Test-Path $CubePath)) {
-    Write-Host "[OK] STM32CubeF1: $CubePath" -ForegroundColor Green
-} else {
-    Write-Host "[!!] STM32CubeF1 NOT FOUND!" -ForegroundColor Yellow
-    Write-Host "     Download from: https://github.com/STMicroelectronics/STM32CubeF1" -ForegroundColor Gray
-    Write-Host "     Or use: -CubePath to specify location" -ForegroundColor Gray
-    Write-Host "     Without it, Keil/Makefile will have broken paths." -ForegroundColor Gray
-    $CubePath = ""
-}
-
-# ---- Find FreeRTOS ----
-if ($FreeRtosPath -eq "") {
-    $searchPaths = @(
-        "C:\Users\$env:USERNAME\FreeRTOS\FreeRTOSv*\FreeRTOS",
-        "C:\FreeRTOS\FreeRTOSv*\FreeRTOS",
-        "D:\FreeRTOS\FreeRTOSv*\FreeRTOS",
-        "$ScriptDir\..\..\FreeRTOS\FreeRTOSv*\FreeRTOS"
-    )
-
-    foreach ($pattern in $searchPaths) {
-        $found = Get-Item $pattern -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
-        if ($found) {
-            $FreeRtosPath = $found.FullName
-            break
-        }
-    }
-}
-
-if ($FreeRtosPath -and (Test-Path $FreeRtosPath)) {
-    Write-Host "[OK] FreeRTOS: $FreeRtosPath" -ForegroundColor Green
-} else {
-    Write-Host "[!!] FreeRTOS NOT FOUND!" -ForegroundColor Yellow
-    Write-Host "     Download from: https://github.com/FreeRTOS/FreeRTOS" -ForegroundColor Gray
-    Write-Host "     Or use: -FreeRtosPath to specify location" -ForegroundColor Gray
-    $FreeRtosPath = ""
-}
-
-# ---- Update Makefile ----
-$makefilePath = Join-Path $ScriptDir "Makefile"
-if (Test-Path $makefilePath) {
-    $makefileContent = Get-Content $makefilePath -Raw
-
-    if ($CubePath) {
-        $cubePathNormalized = $CubePath -replace '\\','/'
-        $makefileContent = $makefileContent -replace 'STM32CUBE = .*', "STM32CUBE = $cubePathNormalized"
-    }
-    if ($FreeRtosPath) {
-        $freeRtosPathNormalized = $FreeRtosPath -replace '\\','/'
-        $makefileContent = $makefileContent -replace 'FREERTOS = .*', "FREERTOS = $freeRtosPathNormalized"
-    }
-
-    Set-Content $makefilePath -Value $makefileContent
-    Write-Host "[OK] Makefile updated" -ForegroundColor Green
-}
-
-# ---- Update Keil project files ----
-$cubePathNormalized = if ($CubePath) { $CubePath -replace '\\','/' } else { "__CUBE__" }
-$freeRtosPathNormalized = if ($FreeRtosPath) { $FreeRtosPath -replace '\\','/' } else { "__FREERTOS__" }
-
-foreach ($ext in @(".uvprojx", ".uvoptx")) {
-    $projPath = Join-Path $ScriptDir "DMAFreeRTOS$ext"
-    if (Test-Path $projPath) {
-        $content = Get-Content $projPath -Raw
-        $content = $content -replace '__CUBE__', $cubePathNormalized
-        $content = $content -replace '__FREERTOS__', $freeRtosPathNormalized
-        Set-Content $projPath -Value $content
-        Write-Host "[OK] DMAFreeRTOS$ext updated" -ForegroundColor Green
+$all_ok = $true
+foreach ($c in $checks) {
+    if (Test-Path $c.Path) {
+        Write-Host "  [OK]  $($c.Name)" -ForegroundColor Green
+    } else {
+        Write-Host "  [MISS] $($c.Name)" -ForegroundColor Red
+        $all_ok = $false
     }
 }
 
 Write-Host ""
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " Configuration complete!" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-
-if (-not $CubePath -or -not $FreeRtosPath) {
-    Write-Host ""
-    Write-Host "NEXT STEPS:" -ForegroundColor Yellow
-    Write-Host " 1. Install missing dependencies" -ForegroundColor White
-    Write-Host " 2. Re-run this script with correct paths:" -ForegroundColor White
-    Write-Host "    .\configure_paths.ps1 -CubePath '<path>' -FreeRtosPath '<path>'" -ForegroundColor White
-    Write-Host ""
-    Write-Host " 3. Open DMAFreeRTOS.uvprojx in Keil MDK" -ForegroundColor White
-    Write-Host "    - Set 'Options for Target' → Debug → ST-Link" -ForegroundColor White
-    Write-Host "    - Click 'Build' (F7)" -ForegroundColor White
-    Write-Host "    - Click 'Download' (F8) to flash" -ForegroundColor White
+if ($all_ok) {
+    Write-Host "All dependencies OK. Project is ready!" -ForegroundColor Green
 } else {
-    Write-Host ""
-    Write-Host "READY! You can now:" -ForegroundColor Cyan
-    Write-Host "  1. Open DMAFreeRTOS.uvprojx in Keil MDK and build" -ForegroundColor White
-    Write-Host "  2. Or run: make clean && make" -ForegroundColor White
+    Write-Host "SOME FILES MISSING! Run: git checkout platform/" -ForegroundColor Red
+    exit 1
 }
+
+Write-Host ""
+Write-Host "=== HOW TO USE ===" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  Keil MDK (recommended):" -ForegroundColor White
+Write-Host "  1. Install STM32F1 pack in Keil Pack Installer" -ForegroundColor Gray
+Write-Host "     (Menu: Project → Manage → Pack Installer)" -ForegroundColor Gray
+Write-Host "     Search 'STM32F1', install 'Keil::STM32F1xx_DFP'" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  2. Open DMAFreeRTOS.uvprojx" -ForegroundColor Gray
+Write-Host "  3. Project → Options → Debug → Select ST-Link" -ForegroundColor Gray
+Write-Host "  4. F7 = Build, F8 = Download" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  GCC (free alternative):" -ForegroundColor White
+Write-Host "  make clean && make" -ForegroundColor Gray
+Write-Host "  st-flash write DMAFreeRTOS.bin 0x08000000" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  CubeMX (advanced):" -ForegroundColor White
+Write-Host "  1. Generate STM32F103ZE project with FreeRTOS" -ForegroundColor Gray
+Write-Host "  2. Merge framework files into generated project" -ForegroundColor Gray
+Write-Host "  See README.md for details" -ForegroundColor Gray

@@ -24,7 +24,6 @@
         <OPTARM>
           <TargetFpuVFP_ARM>0</TargetFpuVFP_ARM>
           <TargetCpu>IRAM(0x20000000,0x10000) IROM(0x08000000,0x80000) CPUTYPE("Cortex-M3") CLOCK(72000000) ELITTLE</TargetCpu>
-          <Oh166RecLen>0</Oh166RecLen>
         </OPTARM>
         <OPTFILE>
           <FileType>3</FileType>
@@ -40,177 +39,82 @@
             <Define>USE_HAL_DRIVER</Define>
             <Define>STM32F103xE</Define>
           </CCDefines>
+          <IncludePath>..\..;..\..\config;..\..\ringbuffer;..\..\driver;..\..\api;..\..\port;.;.\ThirdParty\FreeRTOS\include;.\ThirdParty\FreeRTOS\portable\RVDS\ARM_CM3;.\ThirdParty\HAL\Inc;.\ThirdParty\HAL\Inc\Legacy;.\ThirdParty\CMSIS\Device;.\ThirdParty\CMSIS\Include</IncludePath>
+          <VariousControls>
+            <MiscControls>--c99 -Wall -Wextra</MiscControls>
+          </VariousControls>
         </OPTCC>
         <OPTX>
           <pMon>STLink\ST-LinkIII\ST-LINKIII-KEIL-SWO.dll</pMon>
         </OPTX>
-        <OPTX>
-          <Usedebug>1</Usedebug>
-        </OPTX>
+        <DebugOpt>
+          <uSim>0</uSim>
+          <uTrg>1</uTrg>
+          <sDll>0</sDll>
+          <tDll>0</tDll>
+        </DebugOpt>
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>Framework/RingBuffer</GroupName>
+          <GroupName>App</GroupName>
           <Files>
-            <File>
-              <FileName>ringbuffer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\ringbuffer\ringbuffer.c</FilePath>
-            </File>
+            <File><FileName>main.c</FileName><FileType>1</FileType><FilePath>.\main.c</FilePath></File>
+            <File><FileName>stm32f1xx_it.c</FileName><FileType>1</FileType><FilePath>.\stm32f1xx_it.c</FilePath></File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Framework/Port</GroupName>
+          <GroupName>Framework</GroupName>
           <Files>
-            <File>
-              <FileName>uart_port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\port\stm32f1xx\uart_port.c</FilePath>
-            </File>
+            <File><FileName>ringbuffer.c</FileName><FileType>1</FileType><FilePath>..\..\ringbuffer\ringbuffer.c</FilePath></File>
+            <File><FileName>uart_port.c</FileName><FileType>1</FileType><FilePath>..\..\port\stm32f1xx\uart_port.c</FilePath></File>
+            <File><FileName>uart_dma.c</FileName><FileType>1</FileType><FilePath>..\..\driver\uart_dma.c</FilePath></File>
+            <File><FileName>uart_api.c</FileName><FileType>1</FileType><FilePath>..\..\api\uart_api.c</FilePath></File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Framework/Driver</GroupName>
+          <GroupName>FreeRTOS</GroupName>
           <Files>
-            <File>
-              <FileName>uart_dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\uart_dma.c</FilePath>
-            </File>
+            <File><FileName>tasks.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\FreeRTOS\src\tasks.c</FilePath></File>
+            <File><FileName>queue.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\FreeRTOS\src\queue.c</FilePath></File>
+            <File><FileName>list.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\FreeRTOS\src\list.c</FilePath></File>
+            <File><FileName>timers.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\FreeRTOS\src\timers.c</FilePath></File>
+            <File><FileName>port.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\FreeRTOS\portable\RVDS\ARM_CM3\port.c</FilePath></File>
+            <File><FileName>heap_4.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\FreeRTOS\portable\MemMang\heap_4.c</FilePath></File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Framework/API</GroupName>
+          <GroupName>HAL</GroupName>
           <Files>
-            <File>
-              <FileName>uart_api.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\api\uart_api.c</FilePath>
-            </File>
+            <File><FileName>stm32f1xx_hal.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_gpio.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_gpio.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_dma.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_dma.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_uart.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_uart.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_rcc.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_rcc.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_cortex.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_cortex.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_flash.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_flash.c</FilePath></File>
+            <File><FileName>stm32f1xx_hal_pwr.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\HAL\Src\stm32f1xx_hal_pwr.c</FilePath></File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Application</GroupName>
+          <GroupName>CMSIS</GroupName>
           <Files>
-            <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\stm32f1xx_it.c</FilePath>
-            </File>
+            <File><FileName>system_stm32f1xx.c</FileName><FileType>1</FileType><FilePath>.\ThirdParty\CMSIS\Device\system_stm32f1xx.c</FilePath></File>
+            <File><FileName>startup_stm32f103xe.s</FileName><FileType>2</FileType><FilePath>.\startup_stm32f103xe.s</FilePath></File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Startup</GroupName>
+          <GroupName>Config</GroupName>
           <Files>
-            <File>
-              <FileName>startup_stm32f103xe.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\startup_stm32f103xe.s</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>HAL/STM32F1xx</GroupName>
-          <Files>
-            <File>
-              <FileName>system_stm32f1xx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates/system_stm32f1xx.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_rcc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_cortex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_pwr.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__CUBE__/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>FreeRTOS/Core</GroupName>
-          <Files>
-            <File>
-              <FileName>tasks.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__FREERTOS__/Source/tasks.c</FilePath>
-            </File>
-            <File>
-              <FileName>queue.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__FREERTOS__/Source/queue.c</FilePath>
-            </File>
-            <File>
-              <FileName>list.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__FREERTOS__/Source/list.c</FilePath>
-            </File>
-            <File>
-              <FileName>timers.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__FREERTOS__/Source/timers.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>FreeRTOS/Portable</GroupName>
-          <Files>
-            <File>
-              <FileName>port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__FREERTOS__/Source/portable/RVDS/ARM_CM3/port.c</FilePath>
-            </File>
-            <File>
-              <FileName>heap_4.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>__FREERTOS__/Source/portable/MemMang/heap_4.c</FilePath>
-            </File>
+            <File><FileName>uart_config.h</FileName><FileType>5</FileType><FilePath>..\..\config\uart_config.h</FilePath></File>
+            <File><FileName>FreeRTOSConfig.h</FileName><FileType>5</FileType><FilePath>.\FreeRTOSConfig.h</FilePath></File>
+            <File><FileName>stm32f1xx_hal_conf.h</FileName><FileType>5</FileType><FilePath>.\stm32f1xx_hal_conf.h</FilePath></File>
           </Files>
         </Group>
       </Groups>
     </Target>
   </Targets>
-
   <RTE>
     <apis/>
     <components/>
   </RTE>
-
 </Project>

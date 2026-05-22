@@ -1,17 +1,16 @@
 /**
  * @file    FreeRTOSConfig.h
- * @brief   FreeRTOS configuration for STM32F103ZET6 + DMA-UART Framework
- *
- * Place this file in your project's include path alongside FreeRTOS source.
+ * @brief   FreeRTOS config for STM32F103ZET6 (self-contained)
  */
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#include "stm32f1xx_hal.h"
+/* SystemCoreClock is defined in system_stm32f1xx.c */
+extern uint32_t SystemCoreClock;
 
 /*-----------------------------------------------------------
- * Kernel configuration
+ * Kernel
  *----------------------------------------------------------*/
 #define configUSE_PREEMPTION                    1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
@@ -33,7 +32,7 @@
 #define configUSE_STATS_FORMATTING_FUNCTIONS    0
 
 /*-----------------------------------------------------------
- * Memory allocation
+ * Memory
  *----------------------------------------------------------*/
 #define configSUPPORT_STATIC_ALLOCATION         0
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
@@ -41,15 +40,12 @@
 #define configAPPLICATION_ALLOCATED_HEAP        0
 
 /*-----------------------------------------------------------
- * Hook functions
+ * Hooks
  *----------------------------------------------------------*/
 #define configUSE_IDLE_HOOK                     0
 #define configUSE_TICK_HOOK                     0
 #define configUSE_MALLOC_FAILED_HOOK            1
 
-/*-----------------------------------------------------------
- * Runtime stats (optional, needs timer)
- *----------------------------------------------------------*/
 #define configGENERATE_RUN_TIME_STATS           0
 
 /*-----------------------------------------------------------
@@ -61,20 +57,10 @@
 #define configTIMER_TASK_STACK_DEPTH            256
 
 /*-----------------------------------------------------------
- * Interrupt priority mapping (Cortex-M3)
+ * NVIC priority mapping (STM32F103: 4-bit, 0-15)
  *
- * STM32F103 uses 4-bit NVIC priority (0-15).
- * configMAX_SYSCALL_INTERRUPT_PRIORITY defines the
- * threshold: ISRs with logical priority >= this value
- * can call FreeRTOS FromISR APIs.
- *
- * FreeRTOS masks the top 4 bits. On STM32, priority
- * is already in the top 4 bits (bits 7:4 in NVIC_IPR).
- *
- *  configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY = 5
- *  → FreeRTOS-callable ISRs: priority 5..15
- *  → Non-FreeRTOS ISRs: priority 0..4 (reserved for
- *    time-critical interrupts)
+ * ISRs with priority >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+ * can call FreeRTOS FromISR functions.
  *----------------------------------------------------------*/
 #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY         15
 #define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY    5
@@ -82,7 +68,7 @@
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY    (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - 4))
 
 /*-----------------------------------------------------------
- * ISR handlers that FreeRTOS itself defines
+ * FreeRTOS ISR handlers
  *----------------------------------------------------------*/
 #define vPortSVCHandler       SVC_Handler
 #define xPortPendSVHandler    PendSV_Handler

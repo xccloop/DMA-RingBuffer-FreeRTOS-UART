@@ -5,9 +5,9 @@
   <Extensions>
     <cExt>
       <Cversion>0</Cversion>
-      <MiscControls>-Wall -Wextra -fno-common</MiscControls>
+      <MiscControls>--c99 -Wall -Wextra</MiscControls>
       <Define>USE_HAL_DRIVER, STM32F103xE</Define>
-      <IncludePath>..\..;..\..\config;..\..\ringbuffer;..\..\driver;..\..\api;..\..\port;.;__FREERTOS__\Source\include;__FREERTOS__\Source\portable\RVDS\ARM_CM3;__CUBE__\Drivers\STM32F1xx_HAL_Driver\Inc;__CUBE__\Drivers\CMSIS\Device\ST\STM32F1xx\Include;__CUBE__\Drivers\CMSIS\Include</IncludePath>
+      <IncludePath>..\..;..\..\config;..\..\ringbuffer;..\..\driver;..\..\api;..\..\port;.;.\ThirdParty\FreeRTOS\include;.\ThirdParty\FreeRTOS\portable\RVDS\ARM_CM3;.\ThirdParty\HAL\Inc;.\ThirdParty\HAL\Inc\Legacy;.\ThirdParty\CMSIS\Device;.\ThirdParty\CMSIS\Include</IncludePath>
       <uac>1</uac>
       <Optim>3</Optim>
       <wLevel>0</wLevel>
@@ -18,7 +18,7 @@
     </cExt>
     <aExt>
       <AssemblerAdsDefine>STM32F103xE</AssemblerAdsDefine>
-      <AssemblerAdsInclude>__CUBE__\Drivers\CMSIS\Include;__CUBE__\Drivers\CMSIS\Device\ST\STM32F1xx\Include</AssemblerAdsInclude>
+      <AssemblerAdsInclude>.\ThirdParty\CMSIS\Include;.\ThirdParty\CMSIS\Device</AssemblerAdsInclude>
     </aExt>
     <DebugOpt>
       <uSim>0</uSim>

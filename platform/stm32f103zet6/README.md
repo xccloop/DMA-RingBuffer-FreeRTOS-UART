@@ -1,6 +1,6 @@
 # STM32F103ZET6 集成指南
 
-本目录包含将 DMA-UART 框架部署到 STM32F103ZET6 所需的全部平台文件。
+**本工程已自包含（Self-Contained）。所有第三方源码（FreeRTOS、HAL、CMSIS）均已打包在 `ThirdParty/` 目录中。无需下载任何外部依赖。**
 
 ---
 
@@ -8,192 +8,83 @@
 
 ```
 platform/stm32f103zet6/
-├── main.c                    # 演示程序 (双串口回显 + 状态监控)
-├── stm32f1xx_it.c            # 中断向量挂接 (USART + DMA ISR → 框架)
-├── startup_stm32f103xe.s     # CMSIS 启动文件 (向量表 + 复位)
-├── FreeRTOSConfig.h          # FreeRTOS 内核配置
-├── stm32f1xx_hal_conf.h      # STM32 HAL 模块使能配置
-├── STM32F103XE_FLASH.sct     # Keil MDK 散列文件 (linker)
-├── STM32F103XE_FLASH.ld      # GCC 链接脚本
-├── Makefile                  # GCC Makefile (arm-none-eabi-gcc)
-├── DMAFreeRTOS.uvprojx       # Keil MDK 工程文件
-├── DMAFreeRTOS.uvoptx        # Keil MDK 工程选项
-├── configure_paths.ps1       # 自动路径配置脚本 (PowerShell)
-└── README.md                 # 本文档
+├── main.c                       # 演示程序 (双串口回显 + 状态监控)
+├── stm32f1xx_it.c               # 中断向量挂接 (USART + DMA ISR → 框架)
+├── startup_stm32f103xe.s        # CMSIS 启动文件 (向量表 + 复位)
+├── FreeRTOSConfig.h             # FreeRTOS 内核配置
+├── stm32f1xx_hal_conf.h         # STM32 HAL 模块使能配置
+├── STM32F103XE_FLASH.sct        # Keil MDK 散列文件 (linker)
+├── STM32F103XE_FLASH.ld         # GCC 链接脚本
+├── Makefile                     # GCC Makefile (自包含，所有路径本地)
+├── DMAFreeRTOS.uvprojx          # Keil MDK 工程文件 (自包含)
+├── DMAFreeRTOS.uvoptx           # Keil MDK 工程选项
+├── configure_paths.ps1          # 验证脚本 (检查文件完整性)
+├── ThirdParty/                  # ★ 所有第三方库已打包
+│   ├── FreeRTOS/                # FreeRTOS Kernel v11.x
+│   │   ├── src/                 # tasks.c, queue.c, list.c, timers.c
+│   │   ├── include/             # FreeRTOS.h, task.h, queue.h, semphr.h...
+│   │   └── portable/
+│   │       ├── RVDS/ARM_CM3/    # port.c (Keil/ARMCC)
+│   │       └── MemMang/         # heap_4.c
+│   ├── HAL/                     # STM32F1 HAL Driver
+│   │   ├── Src/                 # 8 个 .c 文件 (hal, gpio, dma, uart, rcc...)
+│   │   └── Inc/                 # 对应 .h 文件
+│   └── CMSIS/
+│       ├── Device/              # stm32f1xx.h, stm32f103xe.h, system_stm32f1xx.c
+│       └── Include/             # core_cm3.h, cmsis_gcc.h, cmsis_armcc.h...
+└── README.md                    # 本文档
 ```
 
 ---
 
 ## 前提条件
 
-需要获取以下第三方库（不在本仓库中）：
+编译工具（二选一）：
 
-### 1. STM32CubeF1（HAL 库 + CMSIS）
+- **Keil MDK-ARM** v5.38+ (商业软件)
+- **ARM GCC** (arm-none-eabi-gcc) — 免费
 
-**方式 A** — 从 ST 官网下载：
-1. 访问 https://www.st.com/stm32cubef1
-2. 下载 STM32Cube_FW_F1 包
-3. 解压到任意目录
-
-**方式 B** — 从 GitHub 克隆：
-```bash
-git clone https://github.com/STMicroelectronics/STM32CubeF1.git
-```
-
-### 2. FreeRTOS
-
-```bash
-git clone https://github.com/FreeRTOS/FreeRTOS.git --depth 1
-```
-
-### 3. 编译器（二选一）
-
-- **Keil MDK-ARM** v5.38+ (商业软件，需许可证)
-- **ARM GCC** (GNU Arm Embedded Toolchain) — 免费
-  - 下载: https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain
+Keil 用户还需安装 STM32F1 设备包：
+1. 打开 Keil → Pack Installer
+2. 搜索 `STM32F1`
+3. 安装 `Keil::STM32F1xx_DFP`（设备支持 + Flash 算法）
 
 ---
 
 ## 快速开始
 
-### 步骤 1：配置路径
-
-运行自动配置脚本：
+### 检查文件完整性
 
 ```powershell
 cd platform\stm32f103zet6
 .\configure_paths.ps1
 ```
 
-如果未自动找到 STM32CubeF1 或 FreeRTOS，手动指定：
-
-```powershell
-.\configure_paths.ps1 -CubePath "D:\STM32Cube_FW_F1_V1.8.5" -FreeRtosPath "D:\FreeRTOSv202212.01\FreeRTOS"
-```
-
-脚本会自动更新 Makefile 和 Keil 工程文件中的路径。
-
----
-
-### 方式 A：使用 Keil MDK（推荐新手）
-
-#### A.1 打开工程
-
-1. 双击 `DMAFreeRTOS.uvprojx` 在 Keil MDK 中打开
-2. 如果弹出 "Missing path" 警告，说明 STM32CubeF1/FreeRTOS 路径不正确
-3. 重新运行 `configure_paths.ps1` 修正路径
-
-#### A.2 配置工程选项（如需要）
-
-右键 Target → **Options for Target 'DMAFreeRTOS'**：
-
-| 选项卡 | 设置 |
-|--------|------|
-| **Target** | XTAL = 8.0 MHz, ARM Compiler = Use default |
-| **C/C++** | Optimize = -O2, C99 mode |
-| **Linker** | Scatter File = `.\STM32F103XE_FLASH.sct` |
-| **Debug** | Use: ST-Link Debugger |
-| **Utilities** | Use Debug Driver for Flash Programming |
-
-#### A.3 构建 & 烧录
-
-- **Build**: F7
-- **Download**: F8
-- **Start Debug**: Ctrl+F5
-
-#### A.4 导入 HAL 源文件（如果自动路径不生效）
-
-Keil .uvprojx 使用 `__CUBE__` 和 `__FREERTOS__` 占位符。如果 configure_paths.ps1 未替换它们，你需要：
-
-1. 在 Keil 中右键每个 Group → **Add Existing Files**
-2. 手动从 STM32CubeF1 目录添加 HAL .c 文件
-3. 手动从 FreeRTOS 目录添加 tasks.c, queue.c, list.c, timers.c, port.c, heap_4.c
-
-或者，用 CubeMX 生成一个基础工程后，**只需添加框架文件**：
-- `ringbuffer/ringbuffer.c`
-- `port/stm32f1xx/uart_port.c`
-- `driver/uart_dma.c`
-- `api/uart_api.c`
-- `platform/stm32f103zet6/main.c`（替换 CubeMX 生成的 main.c）
-- `platform/stm32f103zet6/stm32f1xx_it.c`（替换 CubeMX 生成的 it.c）
-
-#### A.5 包含路径配置
-
-在 Options for Target → C/C++ → Include Paths 中添加：
+### 方式 A：Keil MDK（推荐）
 
 ```
-..\..                       ; 项目根目录
-..\..\config                ; uart_config.h
-..\..\ringbuffer            ; ringbuffer.h
-..\..\driver                ; uart_dma.h
-..\..\api                   ; uart_api.h
-..\..\port                  ; uart_port.h
-.                           ; FreeRTOSConfig.h, stm32f1xx_hal_conf.h
-<STM32CubeF1>\Drivers\STM32F1xx_HAL_Driver\Inc
-<STM32CubeF1>\Drivers\CMSIS\Device\ST\STM32F1xx\Include
-<STM32CubeF1>\Drivers\CMSIS\Include
-<FreeRTOS>\Source\include
-<FreeRTOS>\Source\portable\RVDS\ARM_CM3
+1. 双击 DMAFreeRTOS.uvprojx
+2. F7 = Build
+3. F8 = Download (ST-Link)
+4. Ctrl+F5 = Start Debug
 ```
 
----
+就这么简单。所有源文件路径均已配好，开箱即用。
 
-### 方式 B：使用 GCC Makefile（免费，适合 CI/CD）
-
-#### B.1 安装 ARM GCC
+### 方式 B：GCC Makefile
 
 ```bash
-# 下载并解压到 C:\arm-gcc
-# 添加到 PATH
-set PATH=C:\arm-gcc\bin;%PATH%
+cd platform/stm32f103zet6
+make clean && make          # 编译
+make flash                  # 烧录 (需 st-flash)
 ```
 
-#### B.2 编译
+### 方式 C：CubeMX 集成
 
-```bash
-cd platform\stm32f103zet6
-make clean
-make
-```
-
-产物：
-- `DMAFreeRTOS.elf` — ELF 调试文件
-- `DMAFreeRTOS.hex` — Intel Hex 格式
-- `DMAFreeRTOS.bin` — 原始二进制
-
-#### B.3 烧录（ST-Link）
-
-```bash
-# 方式 1：用 st-flash (https://github.com/stlink-org/stlink)
-make flash
-
-# 方式 2：用 OpenOCD
-openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c "program DMAFreeRTOS.elf verify reset exit"
-```
-
----
-
-### 方式 C：用 STM32CubeMX 生成基础工程 + 添加框架
-
-这是最可靠的方式，推荐所有用户：
-
-1. **打开 STM32CubeMX**，选择芯片 STM32F103ZETx
-2. **配置时钟**：HSE 8MHz → PLL ×9 → 72MHz SYSCLK
-3. **配置外设**：
-   - USART1: Mode = Asynchronous, 参数默认
-   - USART2: Mode = Asynchronous, 参数默认
-   - 两个 USART 都 **不勾选** "Generate IRQ Handler"（用框架提供的 it.c）
-4. **配置 FreeRTOS**：Middleware → FreeRTOS → Enabled
-   - Interface: CMSIS_V2
-   - Total heap size: 15360
-5. **生成代码**：Project → Generate Code
-6. **替换/合并文件**：
-   - 复制 `ringbuffer/`, `driver/`, `api/`, `port/`, `config/` 到工程目录
-   - 用 `platform/stm32f103zet6/stm32f1xx_it.c` 覆盖 CubeMX 生成的 it.c
-   - 用 `platform/stm32f103zet6/main.c` 覆盖 CubeMX 生成的 main.c
-   - 保留 CubeMX 生成的 `FreeRTOSConfig.h`（或与平台目录中的合并）
-   - 将 `port/uart_port.h`, `config/uart_config.h` 路径加入 include path
-7. **编译验证**
+1. CubeMX 选 STM32F103ZE，配时钟 + USART + FreeRTOS
+2. 把 `ringbuffer/`, `driver/`, `api/`, `port/`, `config/` 复制到工程
+3. 用 `platform/stm32f103zet6/main.c` 和 `stm32f1xx_it.c` 替换 CubeMX 生成的
+4. 添加 include paths → 编译
 
 ---
 

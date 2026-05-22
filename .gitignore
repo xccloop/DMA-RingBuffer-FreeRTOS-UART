@@ -1,0 +1,23 @@
+# Build output
+build/
+cmake-build-*/
+*.o
+*.elf
+*.hex
+*.bin
+*.map
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.bak
+*.tmp

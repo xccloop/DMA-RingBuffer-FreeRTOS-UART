@@ -1,0 +1,12 @@
+; STM32F103ZE scatter file (512KB Flash, 64KB RAM)
+LR_IROM1 0x08000000 0x00080000  {
+  ER_IROM1 0x08000000 0x00080000  {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+   .ANY (+XO)
+  }
+  RW_IRAM1 0x20000000 0x00010000  {
+   .ANY (+RW +ZI)
+  }
+}

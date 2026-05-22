@@ -1,0 +1,22 @@
+DMA + RingBuffer + FreeRTOS UART 通信框架
+=========================================
+
+项目结构 (仿 STM32 标准 Keil 工程):
+
+  Core/           CMSIS Cortex-M3 核心文件 (core_cm3.c/h, startup)
+  FreeRTOS/       FreeRTOS 内核 (tasks/queue/list/timers + heap_4 + port)
+  HAL/            STM32F1 HAL 驱动库 (GPIO/DMA/UART/RCC/Cortex/Flash/PWR)
+  System/         STM32F103 系统初始化 (system_stm32f1xx + device header)
+  Framework/      DMA-UART 通信框架 (ringbuffer + uart_port + uart_dma + uart_api)
+  User/           应用层 (main.c + stm32f1xx_it.c + hal_conf.h)
+  RTE/            Keil RTE 组件定义
+  doc/            项目文档
+
+编译:
+  Keil MDK: 双击 Project.uvprojx → F7 Build → F8 Download
+  GCC:      make -f Makefile (需自行配置 toolchain 路径)
+
+硬件连接:
+  UART1: PA9(TX) + PA10(RX) → USB-TTL (115200 8N1)
+  UART2: PA2(TX) + PA3(RX) → 跳线短接 (回环测试)
+  LED:   PC13 → 心跳指示

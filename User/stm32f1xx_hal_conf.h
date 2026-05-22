@@ -19,6 +19,9 @@
 #define LSE_VALUE            ((uint32_t)32768)
 #define LSI_VALUE            ((uint32_t)40000)
 
+#define HSE_STARTUP_TIMEOUT  ((uint32_t)100)    /* 100 ms */
+#define LSE_STARTUP_TIMEOUT  ((uint32_t)5000)   /* 5000 ms */
+
 #define TICK_INT_PRIORITY    ((uint32_t)0x0F)
 
 #ifdef USE_FULL_ASSERT

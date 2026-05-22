@@ -59,13 +59,13 @@ static void echo_task(void *pv)
             else if (strncmp((char*)buf, "test", 4) == 0) {
                 char *s = "Loopback OK!\r\n";
                 uart_send(1, (uint8_t*)s, (uint32_t)strlen(s), pdMS_TO_TICKS(1000));
-                xTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(100));
                 uint8_t rx[64]; int32_t m = uart_recv(1, rx, sizeof(rx), pdMS_TO_TICKS(200));
                 uart_printf(0, "[Test] %s (%ld bytes)\r\n", (m > 0) ? "PASS" : "FAIL (check PA2-PA3 jumper)", m);
             }
             else { uart_printf(0, "echo: "); uart_send(0, buf, (uint32_t)n, pdMS_TO_TICKS(100)); }
             uart_printf(0, "\r\n> ");
-        } else xTaskDelay(pdMS_TO_TICKS(10));
+        } else vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 

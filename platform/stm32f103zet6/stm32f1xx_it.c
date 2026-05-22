@@ -6,7 +6,10 @@
  * Include this file in your project instead of the auto-generated one.
  */
 
+#include "stm32f1xx_hal.h"
 #include "uart_port.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 /* ── USART1 (Console) ── */
 void USART1_IRQHandler(void)          { uart_port_irq_handler(UART_PORT1); }
@@ -38,3 +41,4 @@ void HardFault_Handler(void)
     __disable_irq();
     while (1);
 }
+

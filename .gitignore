@@ -18,6 +18,15 @@ cmake-build-*/
 .DS_Store
 Thumbs.db
 
+# Keil generated files
+*.uvguix.*
+*.dep
+*.build_log.htm
+*.lst
+*.scratch
+JLinkLog.txt
+JLinkSettings.ini
+
 # Misc
 *.bak
 *.tmp

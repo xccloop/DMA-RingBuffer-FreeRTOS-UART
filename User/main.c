@@ -103,17 +103,21 @@ static void echo_task(void *pv)
     }
 }
 
-/* ── Heartbeat LED (PC13) ── */
+/* ── Heartbeat LED (PB5 + PE5) ── */
 static void heartbeat_task(void *pv)
 {
     (void)pv;
-    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
-    /* PC13: push-pull output, 2MHz */
-    GPIOC->CRH = (GPIOC->CRH & ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13))
-               | GPIO_CRH_MODE13_1;
+    RCC->APB2ENR |= RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPEEN;
+    /* PB5: push-pull output, 2MHz */
+    GPIOB->CRL = (GPIOB->CRL & ~(GPIO_CRL_CNF5 | GPIO_CRL_MODE5))
+               | GPIO_CRL_MODE5_1;
+    /* PE5: push-pull output, 2MHz */
+    GPIOE->CRL = (GPIOE->CRL & ~(GPIO_CRL_CNF5 | GPIO_CRL_MODE5))
+               | GPIO_CRL_MODE5_1;
     TickType_t t = xTaskGetTickCount();
     while (1) {
-        GPIOC->ODR ^= GPIO_ODR_ODR13;
+        GPIOB->ODR ^= GPIO_ODR_ODR5;
+        GPIOE->ODR ^= GPIO_ODR_ODR5;
         vTaskDelayUntil(&t, pdMS_TO_TICKS(500));
     }
 }
